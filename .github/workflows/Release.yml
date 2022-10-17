@@ -1,0 +1,64 @@
+name: Node JS Release Action
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: true
+        type: string
+      tag: 
+        type: string
+#    secrets:
+#      registry_token:
+#        required: true
+#      registry_username:
+#        required: true
+#      registry_password:
+#        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📚 checkout
+        uses: actions/checkout@v2.1.1
+
+      - name: Setup Registry
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{inputs.node-version}}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@dependbottest"  
+
+      - name: Install Node Dependencies
+        run: |
+          echo "::group::Install Node Dependencies"       
+          npm ci
+          echo "::endgroup::"
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+      # Get version from package.json
+      - name: Get package version
+        id: package-version
+        run: |
+          echo "::group::Get Package Version"
+          echo "::set-output name=version::$(grep -m1 version package.json | awk -F: '{ print $2 }' | sed 's/[", ]//g')"
+          echo "::endgroup::"
+        shell: bash
+
+      # Create Release
+      - name: Create Release
+        if: ${{ env.BASE_BRANCH }} == 'main'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package-version.outputs.version }}
+          release_name: ${{ github.event.pull_request.title }}
+          body: |
+            ${{ steps.change-logs.outputs.content }}
+          draft: false
+          prerelease: false
