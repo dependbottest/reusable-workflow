@@ -6,8 +6,8 @@ on:
       node-version:
         required: true
         type: string
-      tag: 
-        type: string
+#       tag: 
+#         type: string
 #    secrets:
 #      registry_token:
 #        required: true
