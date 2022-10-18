@@ -8,9 +8,9 @@ on:
         type: string
 #       tag: 
 #         type: string
-#    secrets:
-#      registry_token:
-#        required: true
+    secrets:
+      GHUB_TOKEN:
+       required: true
 #      registry_username:
 #        required: true
 #      registry_password:
